@@ -18,7 +18,6 @@
 #import "CDVSound.h"
 #import "CDVFile.h"
 #import <AVFoundation/AVFoundation.h>
-#include <math.h>
 
 #define DOCUMENTS_SCHEME_PREFIX @"documents://"
 #define HTTP_SCHEME_PREFIX @"http://"
@@ -342,21 +341,17 @@
             }
             if (!bError) {
                 NSLog(@"Playing audio sample '%@'", audioFile.resourcePath);
-                double duration = 0;
+                double position = 0;
                 if (avPlayer.currentItem && avPlayer.currentItem.asset) {
                     CMTime time = avPlayer.currentItem.asset.duration;
-                    duration = CMTimeGetSeconds(time);
-                    if (isnan(duration)) {
-                        NSLog(@"Duration is infifnite, setting it to -1");
-                        duration = -1;
-                    }
+                    position = CMTimeGetSeconds(time);
 
                     if (audioFile.rate != nil){
                         float customRate = [audioFile.rate floatValue];
                         NSLog(@"Playing stream with AVPlayer & custom rate");
                         [avPlayer setRate:customRate];
                     } else {
-                        NSLog(@"Playing stream with AVPlayer & default rate");
+                        NSLog(@"Playing stream with AVPlayer & custom rate");
                         [avPlayer play];
                     }
 
@@ -382,10 +377,10 @@
                     }
 
                     [audioFile.player play];
-                    duration = round(audioFile.player.duration * 1000) / 1000;
+                    position = round(audioFile.player.duration * 1000) / 1000;
                 }
 
-                jsString = [NSString stringWithFormat:@"%@(\"%@\",%d,%.3f);\n%@(\"%@\",%d,%d);", @"cordova.require('cordova-plugin-media.Media').onStatus", mediaId, MEDIA_DURATION, duration, @"cordova.require('cordova-plugin-media.Media').onStatus", mediaId, MEDIA_STATE, MEDIA_RUNNING];
+                jsString = [NSString stringWithFormat:@"%@(\"%@\",%d,%.3f);\n%@(\"%@\",%d,%d);", @"cordova.require('cordova-plugin-media.Media').onStatus", mediaId, MEDIA_DURATION, position, @"cordova.require('cordova-plugin-media.Media').onStatus", mediaId, MEDIA_STATE, MEDIA_RUNNING];
                 [self.commandDelegate evalJs:jsString];
             }
         }
@@ -869,48 +864,10 @@
         }
     }
     CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDouble:amplitude];
+
+    NSString* jsString = [NSString stringWithFormat:@"%@(\"%@\",%d,%.3f);", @"cordova.require('cordova-plugin-media.Media').onStatus", mediaId, MEDIA_POSITION, amplitude];
+    [self.commandDelegate evalJs:jsString];
     [self.commandDelegate sendPluginResult:result callbackId:callbackId];
- }
-
- - (void)resumeRecordingAudio:(CDVInvokedUrlCommand*)command
-  {
-     NSString* mediaId = [command argumentAtIndex:0];
-
-     CDVAudioFile* audioFile = [[self soundCache] objectForKey:mediaId];
-     NSString* jsString = nil;
-
-     if ((audioFile != nil) && (audioFile.recorder != nil)) {
-         NSLog(@"Resumed recording audio sample '%@'", audioFile.resourcePath);
-         [audioFile.recorder record];
-         // no callback - that will happen in audioRecorderDidFinishRecording
-         jsString = [NSString stringWithFormat:@"%@(\"%@\",%d,%d);", @"cordova.require('cordova-plugin-media.Media').onStatus", mediaId, MEDIA_STATE, MEDIA_RUNNING];
-     }
-
-    // ignore if no media recording
-    if (jsString) {
-        [self.commandDelegate evalJs:jsString];
-    }
-}
-
- - (void)pauseRecordingAudio:(CDVInvokedUrlCommand*)command
-  {
-     NSString* mediaId = [command argumentAtIndex:0];
-
-     CDVAudioFile* audioFile = [[self soundCache] objectForKey:mediaId];
-     NSString* jsString = nil;
-
-     if ((audioFile != nil) && (audioFile.recorder != nil)) {
-         NSLog(@"Paused recording audio sample '%@'", audioFile.resourcePath);
-         [audioFile.recorder pause];
-         // no callback - that will happen in audioRecorderDidFinishRecording
-         // no callback - that will happen in audioRecorderDidFinishRecording
-         jsString = [NSString stringWithFormat:@"%@(\"%@\",%d,%d);", @"cordova.require('cordova-plugin-media.Media').onStatus", mediaId, MEDIA_STATE, MEDIA_PAUSED];
-     }
-
-      // ignore if no media recording
-      if (jsString) {
-          [self.commandDelegate evalJs:jsString];
-      }
  }
 
 @end

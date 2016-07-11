@@ -97,8 +97,6 @@ typedef NSUInteger CDVMediaMsg;
 - (void)seekToAudio:(CDVInvokedUrlCommand*)command;
 - (void)release:(CDVInvokedUrlCommand*)command;
 - (void)getCurrentPositionAudio:(CDVInvokedUrlCommand*)command;
-- (void)resumeRecordingAudio:(CDVInvokedUrlCommand*)command;
-- (void)pauseRecordingAudio:(CDVInvokedUrlCommand*)command;
 
 - (BOOL)hasAudioSession;
 

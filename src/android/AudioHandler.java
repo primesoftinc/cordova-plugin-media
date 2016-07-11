@@ -118,13 +118,7 @@ public class AudioHandler extends CordovaPlugin {
             promptForRecord();
         }
         else if (action.equals("stopRecordingAudio")) {
-            this.stopRecordingAudio(args.getString(0), true);
-        }
-        else if (action.equals("pauseRecordingAudio")) {
-            this.stopRecordingAudio(args.getString(0), false);
-        }
-        else if (action.equals("resumeRecordingAudio")) {
-            this.resumeRecordingAudio(args.getString(0));
+            this.stopRecordingAudio(args.getString(0));
         }
         else if (action.equals("startPlayingAudio")) {
             String target = args.getString(1);
@@ -288,25 +282,13 @@ public class AudioHandler extends CordovaPlugin {
     }
 
     /**
-     * Stop/Pause recording and save to the file specified when recording started.
+     * Stop recording and save to the file specified when recording started.
      * @param id				The id of the audio player
-     * @param stop      If true stop recording, if false pause recording
      */
-    public void stopRecordingAudio(String id, boolean stop) {
+    public void stopRecordingAudio(String id) {
         AudioPlayer audio = this.players.get(id);
         if (audio != null) {
-            audio.stopRecording(stop);
-        }
-    }
-
-    /**
-     * Resume recording
-     * @param id				The id of the audio player
-     */
-    public void resumeRecordingAudio(String id) {
-        AudioPlayer audio = players.get(id);
-        if (audio != null) {
-            audio.resumeRecording();
+            audio.stopRecording();
         }
     }
 
